@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "just-spec",
+  "version": "0.5.0",
+  "description": "Low-ceremony behavioral contracts with adaptive ambiguity resolution and contract-derived verification",
+  "owner": {
+    "name": "Basio0916",
+    "url": "https://github.com/Basio0916"
+  },
+  "plugins": [
+    {
+      "name": "just-spec",
+      "source": "./plugins/just-spec",
+      "description": "Resolve material ambiguity into a behavioral contract, then derive implementation and verification from that contract without persistent plans or microtasks.",
+      "version": "0.5.0",
+      "author": {
+        "name": "Basio0916",
+        "url": "https://github.com/Basio0916"
+      },
+      "homepage": "https://github.com/Basio0916/just-spec",
+      "repository": "https://github.com/Basio0916/just-spec",
+      "license": "MIT",
+      "category": "development",
+      "tags": [
+        "spec-driven-development",
+        "acceptance-criteria",
+        "contract-testing",
+        "claude-code",
+        "low-ceremony",
+        "frontier-models"
+      ]
+    }
+  ]
+}

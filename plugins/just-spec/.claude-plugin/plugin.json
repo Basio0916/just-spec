@@ -1,0 +1,21 @@
+{
+  "name": "just-spec",
+  "version": "0.5.0",
+  "description": "Resolve material ambiguity into lean behavioral contracts, then derive implementation and verification as separate contract-driven concerns without persistent plans or microtasks.",
+  "author": {
+    "name": "Basio0916",
+    "url": "https://github.com/Basio0916"
+  },
+  "homepage": "https://github.com/Basio0916/just-spec",
+  "repository": "https://github.com/Basio0916/just-spec",
+  "license": "MIT",
+  "keywords": [
+    "spec-driven-development",
+    "acceptance-criteria",
+    "behavioral-contract",
+    "contract-testing",
+    "claude-code",
+    "low-ceremony",
+    "frontier-models"
+  ]
+}
