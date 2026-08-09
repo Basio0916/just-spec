@@ -4,9 +4,11 @@
 
 **Persistent What. Ephemeral How.**
 
-Just Specは、Claude Code向けの軽量なSpec駆動開発プラグインです。
+Just Spec は、Claude Code 向けの軽量な仕様駆動開発プラグインです。
 
-詳細なDesign、Implementation Plan、細粒度なTask分割を作る代わりに、実装前に**「何を満たせば正しいのか」だけを明確にします。**
+詳細な設計書や実装計画、細かく分解したタスクを作る代わりに、実装前に一点だけを明確にします。
+
+**その変更が正しいと言えるためには、何が成り立っていればよいのか。**
 
 ```text
 Request
@@ -20,26 +22,26 @@ Behavioral Contract
 Implementation + AC Evidence
 ```
 
-> フロンティアモデルに必要なのは、詳細なImplementation Planではなく、曖昧さのないBehavioral Contractではないか？
+> フロンティアモデルに本当に必要なのは詳細な実装計画ではなく、曖昧さのない振る舞いの契約なのではないか。
 
-Just Specは、この仮説を日常的なソフトウェア開発で試すための小さなワークフローです。
+Just Spec は、この問いを日常的なソフトウェア開発のなかで試すための小さなワークフローです。
 
-## Why Just Spec?
+## なぜ Just Spec なのか
 
-AIコーディングのためのSpec駆動開発には、Design、Plan、Tasks、Reviewなどを段階的に作成するワークフローがあります。
+仕様駆動開発のワークフローの多くは、設計、計画、タスク分解、レビューといった工程を段階的に踏みます。
 
-これらは長時間の自律開発や大規模な変更では有効です。一方、普段の機能開発では、工程そのものが時間・トークン・人間の認知負荷を増やすことがあります。
+長時間の自律的な作業や大規模な変更では、これらは大きな価値を持ちます。しかし日常的な開発では、工程そのものが時間とトークン、そして人間の認知負荷を押し上げてしまうことがあります。
 
-Just Specでは、次のものをデフォルトでは作りません。
+Just Spec は、次のものを既定では作りません。
 
-- Design document
-- Persistent implementation plan
-- Fine-grained task decomposition
-- Task-by-task review
-- Test plan
-- Subagent orchestration
+- 設計書
+- 永続化された実装計画
+- 細粒度のタスク分解
+- タスクごとのレビュー
+- テスト計画
+- サブエージェントによる分業
 
-代わりに残すのは、実装の正しさを判断するためのContractです。
+代わりに残すのは、実装が正しいかどうかを判断するために必要な契約だけです。
 
 ```text
 Goal
@@ -50,27 +52,43 @@ Constraints
 Out of Scope
 ```
 
-実装方法は、その時点のコードベースを見てモデル自身が判断します。
+どう実装するかは、実装の時点でモデルがコードベースを見て判断します。
 
-## Two commands
+## 2つのコマンド
 
-Just Specには2つのSkillしかありません。
+Just Spec には2つのスキルしかありません。
 
 ### `/just-spec:spec`
 
-要求とコードベースを確認し、Behavioral Contractを作成します。
+要求と既存のコードベースから、振る舞いの契約（Behavioral Contract）を作成します。
 
 ```text
-/just-spec:spec <変更要求>
+/just-spec:spec <変更したい内容>
 ```
 
-AIがコードや既存仕様から推論できることは質問しません。
+コードベースや既存の挙動、確立された慣習から妥当に判断できることは質問しません。
 
-人間に確認するのは、正しさを左右する **Material Ambiguity** だけです。たとえば、ユーザーから見える振る舞い、Public / Shared Contract、Authorization、Data retention、Backward compatibility、Destructive behavior、Business policyなどです。
+人間に確認するのは、実装の正しさを変えうる決定、つまり**本質的な曖昧さ**だけです。
 
-質問は一度に1つ行い、回答を得るたびに残っている曖昧さを再評価します。質問数に固定上限はありません。Specの分割も質問数ではなく、独立したGoalとAcceptance Criteriaを持つかどうかで判断します。
+たとえば次のようなものです。
 
-生成されたSpecは次に保存されます。
+- ユーザーから見える振る舞い
+- 公開されている、あるいは他と共有している取り決め
+- 権限とアクセス制御
+- データの保持期間
+- 後方互換性
+- 取り消せない破壊的な操作
+- 業務上の方針
+
+質問は一度に1つずつ行います。
+
+回答を得るたびに、あらかじめ用意した質問票をなぞるのではなく、残っている曖昧さを評価し直します。
+
+質問数に固定の上限はありません。
+
+仕様の分割も、質問の数や技術的なレイヤーではなく、目的がまとまっていて単独で検証できる成果かどうかで判断します。
+
+作成された仕様は次の場所に保存されます。
 
 ```text
 .just-spec/specs/<slug>.md
@@ -78,13 +96,13 @@ AIがコードや既存仕様から推論できることは質問しません。
 
 ### `/just-spec:build`
 
-ReadyになったSpecを実装します。
+準備の整った契約をもとに実装します。
 
 ```text
-/just-spec:build <spec-path-or-slug>
+/just-spec:build <仕様のパスまたはslug>
 ```
 
-実装に必要なPlanは内部で一時的に考えますが、artifactとして保存しません。
+モデルは必要に応じて内部で計画を立てますが、その計画は一時的なもので、成果物としては保存されません。
 
 ```text
 Behavioral Contract
@@ -97,31 +115,41 @@ Behavioral Contract
                          AC Evidence
 ```
 
-実装後は、各Acceptance Criterionについて実行済みのEvidenceを報告します。
+実装の最後に、受け入れ基準の1つひとつについて、それを満たしていると言える根拠を報告します。
 
-## Principles
+## 設計思想
 
-### Persistent What, Ephemeral How
+### 「何が正しいか」は残し、「どう作るか」は残さない
 
-永続化するのは「何が正しいか」です。
+永続化するのは、**何が成り立っていなければならないか**です。
 
-「どのファイルを変更するか」「どの順番で実装するか」といったHowは、その時点のコードを見てAIが判断します。
+**どうやってそれを成り立たせるか**は、その時点のコードベースを見てモデルが判断します。
 
-### Resolve material ambiguity, not implementation detail
+ファイル単位の実装計画や作業手順はすぐに古びます。振る舞いの契約は、実装が変わっても価値を保ちやすいものです。
 
-人間に聞くのは、正しさを左右するDecisionだけです。
+### 実装の詳細ではなく、正しさを左右する曖昧さを解く
 
-Class名、File配置、Helperの形など、可逆なImplementation DetailはAIに任せます。
+正しさに実質的な影響を与えることは、人間が決めるべきです。
 
-### Behavior compliance, not plan compliance
+クラス名やファイル配置、ヘルパーの切り方、内部の抽象化といったやり直しのきく選択は、モデルに任せます。
 
-「Planをすべて実行したか」ではなく、**Acceptance Criteriaを満たしたか**で完了を判断します。
+### 計画の遵守ではなく、振る舞いの充足で完了を判断する
 
-### Tests come from the contract, not the implementation
+完了の基準は次ではありません。
 
-Test FirstやTDDは必須ではありません。
+> 計画のすべての手順を実行したか。
 
-重要なのはTestを書く順番ではなく、期待結果のSource of Truthです。
+完了の基準はこちらです。
+
+> 実装は受け入れ基準を満たしているか。
+
+Just Spec は契約に照らして振る舞いを検証し、基準ごとに根拠を報告します。
+
+### テストは実装ではなく契約から導く
+
+Just Spec はテストファーストや TDD、レッドグリーンリファクタを必須とはしません。
+
+重要なのはテストを**いつ**書くかではなく、その期待結果が**どこから来ているか**です。
 
 ```text
               ┌── Implementation
@@ -129,97 +157,101 @@ Spec / AC ────┤
               └── Tests
 ```
 
-TestとImplementationは、どちらも同じBehavioral Contractから導出します。Production codeの内部構造や現在の出力を正解としてTestを作らないことを重視します。
+実装と検証は、どちらも同じ契約から導出されるべきです。
 
-## Why not Plan Mode?
+テストは内部の実装をなぞるのではなく、安定した境界を通して観測できる振る舞いを検証します。
 
-Plan ModeとJust Specは、扱う問題が異なります。
+## Plan Mode との違い
+
+Plan Mode と Just Spec は、解こうとしている問題が違います。
 
 | | Plan Mode | Just Spec |
 |---|---|---|
-| 主な問い | どう実装するか？ | 何を満たせば正しいか？ |
-| 主成果物 | Implementation Plan | Behavioral Contract |
-| How | 明示的に計画する | AIが実装時に判断する |
-| What | PromptやPlanに含まれる | Spec / ACとして明示する |
-| 人間への確認 | Planや実装方針 | Material Ambiguityのみ |
-| 完了判定 | Planの実行 | ACに対するEvidence |
+| 中心の問い | どう実装するか | 何を満たせば正しいか |
+| 主な成果物 | 実装計画 | 振る舞いの契約 |
+| 「どう作るか」 | 明示的に計画する | 実装時に判断する |
+| 「何が正しいか」 | 要求や計画に埋もれがち | 仕様と受け入れ基準として明示する |
+| 人間の関与 | 実装方針をレビューする | 正しさを左右する曖昧さを解く |
+| 完了の判断 | 計画を実行し切ること | 受け入れ基準に対する根拠 |
 
-Just SpecはPlan Modeを置き換えることを目的としていません。
+Just Spec は Plan Mode を置き換えるためのものではありません。
 
-長時間の自律開発、大規模なMigration、複雑な並列実装などでは、詳細なPlanが有効な場合があります。
+長時間の自律的な作業、大規模な移行、複雑な並列実行、あるいは調整そのものが難所になる変更では、詳細な計画は今も有効です。
 
-Just Specが対象にしているのは、**フロンティアモデルを使った日常的なソフトウェア開発**です。
+Just Spec が対象にしているのは、**フロンティアモデルを使った日常的なソフトウェア開発**であり、そこではもっと少ない足場で足りるかもしれない、という領域です。
 
-## Installation
+## インストール
 
-Claude CodeでMarketplaceを追加します。
+Claude Code でマーケットプレイスを追加します。
 
 ```text
 /plugin marketplace add Basio0916/just-spec
 ```
 
-Just Specをインストールします。
+Just Spec をインストールします。
 
 ```text
 /plugin install just-spec@just-spec
 ```
 
-必要に応じてPluginを再読み込みします。
+必要に応じてプラグインを再読み込みします。
 
 ```text
 /reload-plugins
 ```
 
-## Usage
+## 使い方
 
-まずSpecを作ります。
+まず仕様を作ります。
 
 ```text
-/just-spec:spec ユーザーがアカウントを削除できるようにしたい
+/just-spec:spec 14日間の復元期間つきでアカウント削除を追加したい
 ```
 
-Material Ambiguityがあれば、Just Specが必要なことだけを確認します。
+正しさを左右する曖昧さがあれば、振る舞いを一意に定めるために必要な質問だけを確認します。
 
-SpecがReadyになったら実装します。
+仕様が整ったら実装します。
 
 ```text
 /just-spec:build account-deletion
 ```
 
-Build完了時には、Implementation SummaryとAcceptance CriteriaごとのEvidenceが報告されます。
+実装が終わると、変更の要約と、受け入れ基準ごとの根拠が報告されます。
 
-## When not to use Just Spec
+## 向いていない場面
 
-Just Specは、すべての開発に最適なワークフローを目指しているわけではありません。
+Just Spec は、あらゆる開発に最適なワークフローを目指しているわけではありません。
 
-以下のような作業では、より厳密なPlanningやReviewが適している場合があります。
+次のような作業では、より厳密な計画とレビューのほうが適しています。
 
 - 長時間の無人実行
-- 大規模なMigration
-- 複数Agentによる並列開発
-- Security-criticalな変更
-- 複雑なArchitecture変更
-- 高い監査性や承認プロセスが必要な開発
+- 大規模な移行作業
+- 複数エージェントによる並列開発
+- セキュリティ上重要な変更
+- 複雑なアーキテクチャの変更
+- 高い監査性や承認プロセスが求められる開発
 
-Just Specは、こうしたワークフローを否定するものではありません。
+Just Spec は、こうしたワークフローが不要だと主張するものではありません。
 
-**日常的な開発では、もっと少ないScaffoldingで十分ではないか？**
+もっと狭い問いを検証しています。
 
-という仮説を検証するプロジェクトです。
+> **日常的な開発において、フロンティアモデルははるかに少ない足場でも品質を保てるのか。**
 
-## Status
+## 現状
 
-Just Specは現在Experimentalです。
+Just Spec はまだ実験的なプロジェクトです。
 
-まずClaude Code向けの小さなPluginとして、次の2つだけに集中しています。
+いまは意図的に、次の2つのコマンドだけに絞っています。
 
 ```text
 /just-spec:spec
 /just-spec:build
 ```
 
-機能を増やすことより、少ないCeremonyで品質を維持できるかを優先して検証しています。
+目指しているのは、ワークフローを増やすことではありません。
 
-## License
+正しさを保ったまま、どこまでワークフローを減らせるかを見極めることです。
+
+## ライセンス
 
 MIT
