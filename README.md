@@ -1,10 +1,14 @@
 # Just Spec
 
+[日本語版はこちら / Japanese](./README.ja.md)
+
 **Persistent What. Ephemeral How.**
 
-Just Specは、Claude Code向けの軽量なSpec駆動開発プラグインです。
+Just Spec is a lightweight spec-driven development plugin for Claude Code.
 
-詳細なDesign、Implementation Plan、細粒度なTask分割を作る代わりに、実装前に**「何を満たせば正しいのか」だけを明確にします。**
+Instead of creating detailed design documents, implementation plans, or fine-grained task breakdowns, Just Spec focuses on one thing before implementation:
+
+**Define what must be true for the change to be correct.**
 
 ```text
 Request
@@ -18,26 +22,26 @@ Behavioral Contract
 Implementation + AC Evidence
 ```
 
-> フロンティアモデルに必要なのは、詳細なImplementation Planではなく、曖昧さのないBehavioral Contractではないか？
+> What if frontier models don't need detailed implementation plans, as long as they have an unambiguous behavioral contract?
 
-Just Specは、この仮説を日常的なソフトウェア開発で試すための小さなワークフローです。
+Just Spec is a small workflow for exploring that idea in everyday software development.
 
 ## Why Just Spec?
 
-AIコーディングのためのSpec駆動開発には、Design、Plan、Tasks、Reviewなどを段階的に作成するワークフローがあります。
+Many spec-driven development workflows introduce multiple stages such as design, planning, task decomposition, and review.
 
-これらは長時間の自律開発や大規模な変更では有効です。一方、普段の機能開発では、工程そのものが時間・トークン・人間の認知負荷を増やすことがあります。
+These can be valuable for long-running autonomous work or large-scale changes. But for everyday development, the workflow itself can add significant time, token usage, and cognitive overhead.
 
-Just Specでは、次のものをデフォルトでは作りません。
+Just Spec does **not** create these by default:
 
-- Design document
-- Persistent implementation plan
+- Design documents
+- Persistent implementation plans
 - Fine-grained task decomposition
-- Task-by-task review
-- Test plan
+- Task-by-task reviews
+- Test plans
 - Subagent orchestration
 
-代わりに残すのは、実装の正しさを判断するためのContractです。
+Instead, it keeps only the contract needed to determine whether the implementation is correct:
 
 ```text
 Goal
@@ -48,27 +52,43 @@ Constraints
 Out of Scope
 ```
 
-実装方法は、その時点のコードベースを見てモデル自身が判断します。
+The model decides how to implement the change from the current codebase when it builds.
 
-## Two commands
+## Two Commands
 
-Just Specには2つのSkillしかありません。
+Just Spec has only two skills.
 
 ### `/just-spec:spec`
 
-要求とコードベースを確認し、Behavioral Contractを作成します。
+Creates a Behavioral Contract from your request and the existing codebase.
 
 ```text
-/just-spec:spec <変更要求>
+/just-spec:spec <change request>
 ```
 
-AIがコードや既存仕様から推論できることは質問しません。
+Just Spec does not ask questions that can reasonably be answered from the codebase, existing behavior, or established conventions.
 
-人間に確認するのは、正しさを左右する **Material Ambiguity** だけです。たとえば、ユーザーから見える振る舞い、Public / Shared Contract、Authorization、Data retention、Backward compatibility、Destructive behavior、Business policyなどです。
+It asks only about **material ambiguity** — decisions that can change whether the implementation is correct.
 
-質問は一度に1つ行い、回答を得るたびに残っている曖昧さを再評価します。質問数に固定上限はありません。Specの分割も質問数ではなく、独立したGoalとAcceptance Criteriaを持つかどうかで判断します。
+Examples include:
 
-生成されたSpecは次に保存されます。
+- User-visible behavior
+- Public or shared contracts
+- Authorization
+- Data retention
+- Backward compatibility
+- Destructive behavior
+- Business policy
+
+Questions are asked one at a time.
+
+After every answer, Just Spec reevaluates the remaining ambiguities instead of blindly following a predefined questionnaire.
+
+There is no fixed question limit.
+
+Specs are split based on cohesive goals and independently verifiable outcomes, not on the number of questions or technical layers.
+
+The resulting spec is stored at:
 
 ```text
 .just-spec/specs/<slug>.md
@@ -76,13 +96,13 @@ AIがコードや既存仕様から推論できることは質問しません。
 
 ### `/just-spec:build`
 
-ReadyになったSpecを実装します。
+Implements a ready Just Spec contract.
 
 ```text
 /just-spec:build <spec-path-or-slug>
 ```
 
-実装に必要なPlanは内部で一時的に考えますが、artifactとして保存しません。
+The model may plan internally as needed, but the implementation plan remains ephemeral and is not persisted as an artifact.
 
 ```text
 Behavioral Contract
@@ -95,31 +115,41 @@ Behavioral Contract
                          AC Evidence
 ```
 
-実装後は、各Acceptance Criterionについて実行済みのEvidenceを報告します。
+At the end of the build, Just Spec reports evidence for each Acceptance Criterion.
 
 ## Principles
 
 ### Persistent What, Ephemeral How
 
-永続化するのは「何が正しいか」です。
+Persist **what must be true**.
 
-「どのファイルを変更するか」「どの順番で実装するか」といったHowは、その時点のコードを見てAIが判断します。
+Let the model decide **how to make it true** from the current state of the codebase.
 
-### Resolve material ambiguity, not implementation detail
+File-by-file implementation plans and task sequences become stale quickly. Behavioral contracts tend to remain useful even when the implementation changes.
 
-人間に聞くのは、正しさを左右するDecisionだけです。
+### Resolve Material Ambiguity, Not Implementation Detail
 
-Class名、File配置、Helperの形など、可逆なImplementation DetailはAIに任せます。
+Humans should decide things that materially affect correctness.
 
-### Behavior compliance, not plan compliance
+Reversible implementation choices — class names, file placement, helper structure, internal abstractions — are left to the model.
 
-「Planをすべて実行したか」ではなく、**Acceptance Criteriaを満たしたか**で完了を判断します。
+### Behavior Compliance, Not Plan Compliance
 
-### Tests come from the contract, not the implementation
+Completion is not:
 
-Test FirstやTDDは必須ではありません。
+> Did we execute every step in the plan?
 
-重要なのはTestを書く順番ではなく、期待結果のSource of Truthです。
+Completion is:
+
+> Does the implementation satisfy the Acceptance Criteria?
+
+Just Spec verifies behavior against the contract and reports evidence for each AC.
+
+### Tests Come From the Contract, Not the Implementation
+
+Just Spec does not require Test First, TDD, or Red-Green-Refactor.
+
+The important constraint is not **when** tests are written. It is **where their expected behavior comes from**.
 
 ```text
               ┌── Implementation
@@ -127,42 +157,44 @@ Spec / AC ────┤
               └── Tests
 ```
 
-TestとImplementationは、どちらも同じBehavioral Contractから導出します。Production codeの内部構造や現在の出力を正解としてTestを作らないことを重視します。
+Implementation and verification should both be derived from the same Behavioral Contract.
 
-## Why not Plan Mode?
+Tests should verify observable behavior through stable boundaries rather than mirror private implementation details.
 
-Plan ModeとJust Specは、扱う問題が異なります。
+## Why Not Plan Mode?
+
+Plan Mode and Just Spec solve different problems.
 
 | | Plan Mode | Just Spec |
 |---|---|---|
-| 主な問い | どう実装するか？ | 何を満たせば正しいか？ |
-| 主成果物 | Implementation Plan | Behavioral Contract |
-| How | 明示的に計画する | AIが実装時に判断する |
-| What | PromptやPlanに含まれる | Spec / ACとして明示する |
-| 人間への確認 | Planや実装方針 | Material Ambiguityのみ |
-| 完了判定 | Planの実行 | ACに対するEvidence |
+| Primary question | How should we implement this? | What must be true for this to be correct? |
+| Main artifact | Implementation Plan | Behavioral Contract |
+| How | Explicitly planned | Decided during implementation |
+| What | Usually embedded in the request or plan | Explicit Spec / AC |
+| Human input | Review implementation direction | Resolve material ambiguity |
+| Completion | Plan execution | Evidence against AC |
 
-Just SpecはPlan Modeを置き換えることを目的としていません。
+Just Spec is not intended to replace Plan Mode.
 
-長時間の自律開発、大規模なMigration、複雑な並列実装などでは、詳細なPlanが有効な場合があります。
+Detailed planning can still be valuable for long-running autonomous work, large migrations, complex parallel execution, or changes where coordination itself is the hard problem.
 
-Just Specが対象にしているのは、**フロンティアモデルを使った日常的なソフトウェア開発**です。
+Just Spec focuses on **everyday software development with frontier models**, where less scaffolding may be enough.
 
 ## Installation
 
-Claude CodeでMarketplaceを追加します。
+Add the marketplace in Claude Code:
 
 ```text
 /plugin marketplace add Basio0916/just-spec
 ```
 
-Just Specをインストールします。
+Install Just Spec:
 
 ```text
 /plugin install just-spec@just-spec
 ```
 
-必要に応じてPluginを再読み込みします。
+Reload plugins if necessary:
 
 ```text
 /reload-plugins
@@ -170,53 +202,55 @@ Just Specをインストールします。
 
 ## Usage
 
-まずSpecを作ります。
+Create a spec:
 
 ```text
-/just-spec:spec ユーザーがアカウントを削除できるようにしたい
+/just-spec:spec Add account deletion with a 14-day recovery window
 ```
 
-Material Ambiguityがあれば、Just Specが必要なことだけを確認します。
+If there is material ambiguity, Just Spec asks only the questions required to make the behavior unambiguous.
 
-SpecがReadyになったら実装します。
+Once the spec is ready:
 
 ```text
 /just-spec:build account-deletion
 ```
 
-Build完了時には、Implementation SummaryとAcceptance CriteriaごとのEvidenceが報告されます。
+The build finishes with an implementation summary and evidence for each Acceptance Criterion.
 
-## When not to use Just Spec
+## When Not to Use Just Spec
 
-Just Specは、すべての開発に最適なワークフローを目指しているわけではありません。
+Just Spec is not trying to be the right workflow for every kind of development.
 
-以下のような作業では、より厳密なPlanningやReviewが適している場合があります。
+A more rigorous planning and review process may be a better fit for:
 
-- 長時間の無人実行
-- 大規模なMigration
-- 複数Agentによる並列開発
-- Security-criticalな変更
-- 複雑なArchitecture変更
-- 高い監査性や承認プロセスが必要な開発
+- Long-running unattended execution
+- Large-scale migrations
+- Multi-agent parallel development
+- Security-critical changes
+- Complex architectural changes
+- Work requiring strong audit or approval processes
 
-Just Specは、こうしたワークフローを否定するものではありません。
+Just Spec does not argue that those workflows are unnecessary.
 
-**日常的な開発では、もっと少ないScaffoldingで十分ではないか？**
+It explores a narrower question:
 
-という仮説を検証するプロジェクトです。
+> **For everyday development, can frontier models maintain quality with much less scaffolding?**
 
 ## Status
 
-Just Specは現在Experimentalです。
+Just Spec is currently experimental.
 
-まずClaude Code向けの小さなPluginとして、次の2つだけに集中しています。
+For now, it deliberately focuses on only two commands:
 
 ```text
 /just-spec:spec
 /just-spec:build
 ```
 
-機能を増やすことより、少ないCeremonyで品質を維持できるかを優先して検証しています。
+The goal is not to add more workflow.
+
+The goal is to find out how much workflow we can remove while still preserving correctness.
 
 ## License
 
