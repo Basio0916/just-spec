@@ -4,44 +4,31 @@
 
 **Persistent What. Ephemeral How.**
 
-Just Spec is a lightweight spec-driven development plugin for Claude Code.
-
-Instead of creating detailed design documents, implementation plans, or fine-grained task breakdowns, Just Spec focuses on one thing before implementation:
-
-**Define what must be true for the change to be correct.**
+Just Spec is a spec-driven development plugin for Claude Code that concentrates human review on the one artifact worth reviewing: the spec.
 
 ```text
 Request
    ↓
 /just-spec:spec
    ↓
-Behavioral Contract
+Behavioral Contract   ← the one thing you review
    ↓
 /just-spec:build
    ↓
 Implementation + AC Evidence
 ```
 
-> What if frontier models don't need detailed implementation plans, as long as they have an unambiguous behavioral contract?
+A typical workflow spreads your attention across requirements, design, tasks, and generated code. Reviewing code costs more as more code is generated. Reviewing a spec costs the same one screen every time. Just Spec moves your attention from the place that scales with output to the place that does not.
 
-Just Spec is a small workflow for exploring that idea in everyday software development.
+Three things follow from that:
 
-## Why Just Spec?
+- **The spec is the single review point.** There is no plan and no task list to approve, so nothing competes with the contract for your attention.
+- **Done means the contract is satisfied, not that a plan was executed.** The acceptance criteria are the detectors; the build runs against them and reports evidence for each one.
+- **You are the decision maker, not a document reviewer.** Just Spec brings each material decision to you with options and a recommendation, and you choose. It does not create a step where you go hunting through a document for problems.
 
-Many spec-driven development workflows introduce multiple stages such as design, planning, task decomposition, and review.
+## What Just Spec Persists
 
-These can be valuable for long-running autonomous work or large-scale changes. But for everyday development, the workflow itself can add significant time, token usage, and cognitive overhead.
-
-Just Spec does **not** create these by default:
-
-- Design documents
-- Persistent implementation plans
-- Fine-grained task decomposition
-- Task-by-task reviews
-- Test plans
-- Subagent orchestration
-
-Instead, it keeps only the contract needed to determine whether the implementation is correct:
+Just Spec keeps only the contract needed to decide whether the implementation is correct:
 
 ```text
 Goal
@@ -51,6 +38,8 @@ Material Decisions
 Constraints
 Out of Scope
 ```
+
+There is no design document, implementation plan, task breakdown, or test plan. That is a consequence of where review happens rather than a goal in itself: every additional artifact is another place your attention has to go.
 
 The model decides how to implement the change from the current codebase when it builds.
 
@@ -68,9 +57,7 @@ Creates a Behavioral Contract from your request and the existing codebase.
 
 Just Spec does not ask questions that can reasonably be answered from the codebase, existing behavior, or established conventions.
 
-It asks only about **material ambiguity** — decisions that can change whether the implementation is correct.
-
-Examples include:
+It asks about **material ambiguity** — decisions that can change whether the implementation is correct, and decisions that would be expensive to overturn later:
 
 - User-visible behavior
 - Public or shared contracts
@@ -79,12 +66,13 @@ Examples include:
 - Backward compatibility
 - Destructive behavior
 - Business policy
+- Hard-to-reverse implementation choices such as transaction boundaries, event publication, concurrency control, cache coherence, and schema design
 
-Questions are asked one at a time.
+That last group matters because nothing externally observable distinguishes the options today. The cost arrives later, when the choice has to be undone.
 
-After every answer, Just Spec reevaluates the remaining ambiguities instead of blindly following a predefined questionnaire.
+Questions arrive one at a time, as a selection with a recommendation. When several options are genuinely defensible, you also get each option's upside and downside and the reason behind the recommendation, so answering is a choice rather than an essay.
 
-There is no fixed question limit.
+After every answer, Just Spec reevaluates the remaining ambiguities instead of following a predefined questionnaire. There is no fixed question limit.
 
 Specs are split based on cohesive goals and independently verifiable outcomes, not on the number of questions or technical layers.
 
@@ -93,6 +81,16 @@ The resulting spec is stored at:
 ```text
 .just-spec/specs/<slug>.md
 ```
+
+### Reading a Spec
+
+Two kinds of content live in a spec: decisions you confirmed by answering, and statements Just Spec inferred from the codebase. Confirming your own decision is quick. Checking an inference is the part that actually needs you, so inferences are marked:
+
+```text
+- **R4:** 🤖 Deletion is rejected while a payout is still pending.
+```
+
+`🤖` means Just Spec inferred this item and recommends you confirm it. Unmarked items came from your answers.
 
 ### `/just-spec:build`
 
@@ -127,9 +125,11 @@ Let the model decide **how to make it true** from the current state of the codeb
 
 File-by-file implementation plans and task sequences become stale quickly. Behavioral contracts tend to remain useful even when the implementation changes.
 
+Implementation steps stay ephemeral. The reasoning behind a hard-to-reverse choice does not: it is recorded as a Material Decision, together with the option that was rejected. Code shows what was chosen. It never shows what was rejected, or why.
+
 ### Resolve Material Ambiguity, Not Implementation Detail
 
-Humans should decide things that materially affect correctness.
+Humans should decide things that materially affect correctness, or that would be costly to reverse.
 
 Reversible implementation choices — class names, file placement, helper structure, internal abstractions — are left to the model.
 
@@ -161,24 +161,29 @@ Implementation and verification should both be derived from the same Behavioral 
 
 Tests should verify observable behavior through stable boundaries rather than mirror private implementation details.
 
-## Why Not Plan Mode?
+## What This Does Not Catch
 
-Plan Mode and Just Spec solve different problems.
+Tests are detectors for a contract. They can show that an implementation is faithful to the acceptance criteria. They cannot show that an acceptance criterion is missing.
+
+A missing contract produces no failing test, no error, and no review finding. It looks exactly like success. The only place it can be caught is the spec, while you are reading it.
+
+That is the bet this workflow makes, and it is why spec review is the one review Just Spec asks you for. Everything else is arranged so that you still have the attention left to do it.
+
+## Just Spec and Plan Mode
+
+Plan Mode is a permission mode: Claude Code investigates and proposes before it is allowed to edit, and you approve the proposal.
+
+Just Spec is not a permission mode, and the difference is not one of capability. It is a difference in artifact protocol — what gets persisted, what you are asked, and what counts as done.
 
 | | Plan Mode | Just Spec |
 |---|---|---|
-| Primary question | How should we implement this? | What must be true for this to be correct? |
-| Main artifact | Implementation Plan | Behavioral Contract |
-| How | Explicitly planned | Decided during implementation |
-| What | Usually embedded in the request or plan | Explicit Spec / AC |
-| Human input | Review implementation direction | Resolve material ambiguity |
-| Completion | Plan execution | Evidence against AC |
+| What persists | The approved plan, for as long as you keep it | A behavioral contract committed to the repository |
+| What you are asked | To approve an implementation approach before editing begins | To decide material ambiguity, offered as options with a recommendation |
+| What "done" means | Whatever you judge it to be, as usual | Evidence that every Acceptance Criterion is satisfied |
 
-Just Spec is not intended to replace Plan Mode.
+The two compose. Plan Mode governs when Claude Code may edit; Just Spec governs what the change has to satisfy.
 
-Detailed planning can still be valuable for long-running autonomous work, large migrations, complex parallel execution, or changes where coordination itself is the hard problem.
-
-Just Spec focuses on **everyday software development with frontier models**, where less scaffolding may be enough.
+Detailed planning remains valuable for long-running autonomous work, large migrations, complex parallel execution, or changes where coordination itself is the hard problem.
 
 ## Installation
 
@@ -220,9 +225,7 @@ The build finishes with an implementation summary and evidence for each Acceptan
 
 ## When Not to Use Just Spec
 
-Just Spec is not trying to be the right workflow for every kind of development.
-
-A more rigorous planning and review process may be a better fit for:
+Just Spec is not trying to be the right workflow for every kind of development. Deciding whether it fits is your call, not the tool's — it will not refuse a request. These are the cases where a more rigorous planning and review process tends to be a better fit:
 
 - Long-running unattended execution
 - Large-scale migrations
@@ -231,26 +234,22 @@ A more rigorous planning and review process may be a better fit for:
 - Complex architectural changes
 - Work requiring strong audit or approval processes
 
-Just Spec does not argue that those workflows are unnecessary.
+Just Spec does not argue that those workflows are unnecessary. It explores a narrower question:
 
-It explores a narrower question:
-
-> **For everyday development, can frontier models maintain quality with much less scaffolding?**
+> **If human review is concentrated on one contract, is that enough for everyday development with frontier models?**
 
 ## Status
 
 Just Spec is currently experimental.
 
-For now, it deliberately focuses on only two commands:
+It deliberately exposes only two commands:
 
 ```text
 /just-spec:spec
 /just-spec:build
 ```
 
-The goal is not to add more workflow.
-
-The goal is to find out how much workflow we can remove while still preserving correctness.
+The goal is not to add more workflow. The goal is to keep human attention on the one document where spending it changes the outcome.
 
 ## License
 

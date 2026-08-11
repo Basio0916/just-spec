@@ -1,6 +1,6 @@
 {
   "name": "just-spec",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Resolve material ambiguity into lean behavioral contracts, then derive implementation and verification as separate contract-driven concerns without persistent plans or microtasks.",
   "author": {
     "name": "Basio0916",

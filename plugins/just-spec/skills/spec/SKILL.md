@@ -17,7 +17,7 @@ Create the smallest behavioral contract needed to implement and verify the reque
 - Tests come from the contract, not the implementation. Expected results come from the request, an explicit existing contract, or a resolved material decision—not from copying the current implementation.
 - Exclude private methods, class structure, file layout, algorithms, mock interactions, and implementation order unless they are themselves contractual.
 - Do not create `design.md`, `plan.md`, `tasks.md`, `test-plan.md`, implementation steps, or subagent work queues. Do not invoke subagents.
-- Ask only about material ambiguity. Resolve reversible implementation choices from repository conventions and engineering judgment.
+- Ask only about material ambiguity, including choices that are hard to reverse. Resolve reversible choices—class names, file placement, helper shape, test placement—from repository conventions and engineering judgment.
 - Ask one question at a time. There is no fixed question limit; after every answer, recompute what remains ambiguous.
 - Cohesion determines decomposition. Split by independently meaningful goals and verification surfaces, never by question count or technical layer.
 
@@ -37,7 +37,7 @@ Prefer one spec for one coherent outcome. An uncertainty is material only when a
 
 1. focused inspection does not resolve it;
 2. multiple plausible answers remain;
-3. the choice changes observable behavior, a public/shared contract, security/privacy, retention/migration, compatibility, destructive behavior, or business policy; and
+3. the choice has externally observable impact—behavior, a public/shared contract, security/privacy, retention/migration, compatibility, destructive behavior, business policy—or is hard to reverse, meaning overturning it later costs a lot even though nothing observable differs today (transaction boundaries, event publication, locking and concurrency, cache coherence, schema design); and
 4. a wrong assumption creates meaningful rework or risk.
 
 Split only when capabilities have distinct goals and acceptance criteria and can be implemented, verified, released, or changed independently. Do not split by controller/service/repository/frontend/test layers.
@@ -46,12 +46,13 @@ Split only when capabilities have distinct goals and acceptance criteria and can
 
 Choose the unresolved decision whose answer is most likely to eliminate or reshape other questions.
 
-For each turn, provide:
+Ask through the `AskUserQuestion` tool, one question per prompt, with the recommended option first and marked as recommended. Fall back to plain text only when the tool is unavailable. Always state the contract impact in one sentence.
 
-- a recommendation;
-- two to four concise options;
-- one sentence explaining the contract impact; and
-- exactly one question.
+When the choice is hard to reverse or externally observable and several options are defensible, put the comparison in your message—each option's upside and downside, then the recommendation and its reason—within a few lines per option, and keep the tool options to a name and a one-line summary. Ground the recommendation in Out of Scope, existing Decisions, or the codebase's current standard.
+
+For simple confirmations and factual checks, skip the written comparison and offer the options alone. Not every question is a comparison.
+
+The human answers by choosing. Never require free text; accept it only as an optional note.
 
 Apply the answer to the provisional contract, then recompute all remaining ambiguities. Drop questions that became irrelevant and rewrite those whose meaning changed.
 
@@ -92,6 +93,10 @@ Include only:
 
 Each AC should state enough precondition/input, action/event, and observable result to serve as an independent verification oracle. Given/When/Then is optional.
 
+Mark every item you inferred from the codebase or existing specs with `🤖`. Leave items the human confirmed unmarked. The mark tells the reviewer which lines are your reasoning rather than their own decision, so keep it to that one character and do not let it crowd the page.
+
+Record each hard-to-reverse choice as the chosen option, the main rejected option, and the rationale—carried over from the comparison you presented and marked `🤖` because it is yours, not theirs. Add the invariant it depends on and the condition that should reopen it only when they apply. Never ask the human why they chose. When they choose against your recommendation, offer an optional one-line note and record `chose against the recommendation (no reason given)` if they skip it.
+
 If multiple specs are semantically necessary, place them under `.just-spec/specs/<initiative>/` and create `overview.md` from `${CLAUDE_SKILL_DIR}/templates/overview.md`. Record only shared decisions, vocabulary, cross-spec contracts, invariants, and the spec list—not a roadmap or task order.
 
 ### 6. Validate and hand off
@@ -110,7 +115,10 @@ Report:
 
 - the created or updated spec path;
 - key material decisions;
-- assumptions resolved without asking; and
+- assumptions resolved without asking;
+- a line telling the human that this spec is the only artifact the workflow asks them to review, and that the `🤖` items deserve their attention first; and
 - the next command:
 
 `/just-spec:build <spec-path-or-slug>`
+
+That line is orientation, not an approval gate. Give the next command in the same report and do not wait for sign-off.

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.0 — 2026-08-11
+
+Repositioned Just Spec from a lighter spec-driven workflow to one that concentrates human review on the spec, and strengthened what reaches the human and what the spec records.
+
+- Extended the third materiality condition to cover hard-to-reverse choices such as transaction boundaries, event publication, concurrency control, cache coherence, and schema design, without widening it to reversible day-to-day choices.
+- Moved questions to the `AskUserQuestion` tool, one per prompt, recommended option first, with plain text as the fallback.
+- Added a comparison format for hard-to-reverse branches: each option's upside and downside plus a recommendation grounded in Out of Scope, existing Decisions, or the current codebase standard. Simple confirmations keep the plain option list.
+- Extended Material Decisions to record the chosen option, the main rejected option, the model-authored rationale, and optional invariant and revisit conditions. The human is never asked to justify a choice; going against the recommendation offers an optional, skippable note.
+- Added the `🤖` mark for items inferred from the codebase, so spec review can separate confirming a decision from checking an inference.
+- Added a handoff line pointing the human at the spec and the marked items, as orientation rather than an approval gate.
+- Rewrote README, `docs/PHILOSOPHY.md`, and `docs/INTERVIEW.md` around review concentration, reframed the Plan Mode comparison as permission mode versus artifact protocol, and stated plainly that detectors cannot catch a missing contract.
+- Kept the two-command surface, the spec file layout, and `Persistent What. Ephemeral How.` unchanged.
+
 ## 0.5.0 — 2026-08-09
 
 Prepared the prototype for public release under `Basio0916/just-spec`.

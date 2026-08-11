@@ -4,7 +4,15 @@ Read this only when a decision is difficult to classify, interview order is uncl
 
 ## Material vs. implementation detail
 
-A choice is material when focused inspection leaves multiple plausible answers and the choice changes observable behavior, a public/shared contract, authorization, security/privacy, retention/deletion/migration, compatibility, business policy, or another costly-to-reverse outcome.
+A choice is material when focused inspection leaves multiple plausible answers and the choice either has externally observable impact—behavior, a public/shared contract, authorization, security/privacy, retention/deletion/migration, compatibility, business policy—or is hard to reverse.
+
+Hard to reverse means overturning the choice later costs a lot even though nothing externally observable differs today:
+
+- transaction boundaries;
+- event publication shape and timing;
+- locking and concurrency control;
+- cache coherence strategy;
+- schema design.
 
 Usually decide without asking:
 
@@ -20,20 +28,34 @@ Do not record these as material decisions.
 
 There is no fixed question limit. Maintain a provisional ambiguity map, ask the highest-leverage unresolved question, apply the answer, then recompute the map. Remove obsolete questions and reshape dependent ones.
 
-Compact question form:
+Ask through `AskUserQuestion`. For a simple confirmation the options alone are enough:
 
 ```text
-Recommended: B — retain history but revoke access.
-
 When membership is removed, what happens to old notifications?
-A. Hide them
-B. Keep them; links return access denied
-C. Keep them with a read-only snapshot
+A. Keep them; links return access denied (recommended)
+B. Hide them
 
 This changes retention and authorization behavior.
 ```
 
-Ask exactly one question and accept a custom answer.
+For a hard-to-reverse choice, put the comparison in the message and keep the options short:
+
+```text
+Recommended: A — retention stays auditable and revocation stays in one place.
+
+A. Keep and deny. Upside: the audit trail survives a membership change.
+   Downside: users see entries they can no longer open.
+B. Hide. Upside: the list always matches current access.
+   Downside: removal silently rewrites what the user already saw.
+
+This changes retention and authorization behavior.
+```
+
+Ask exactly one question and accept a custom answer. Never require free text.
+
+## Recording the choice
+
+Write the chosen option, the main rejected option, and the rationale you already presented—marked `🤖`, since it is your reasoning rather than the human's. Add an invariant or a revisit condition only when one exists. Do not ask the human to justify a choice; when they go against the recommendation, an optional one-line note is the most you may request.
 
 For long interviews, summarize `Resolved` and `Still material`. A checkpoint is orientation, not an approval gate.
 

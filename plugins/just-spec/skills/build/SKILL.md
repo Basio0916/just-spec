@@ -74,7 +74,9 @@ Resolve implementation discoveries—file placement, helper shape, local refacto
 
 Stop only for contract discoveries such as new user-visible behavior, public/shared contracts, authorization, retention, destructive behavior, compatibility, or another costly-to-reverse decision.
 
-Ask one material question with a recommendation and options. After the answer, update the spec and affected ACs, recompute verification obligations, and continue without creating a separate plan.
+Ask one material question through the `AskUserQuestion` tool, recommended option first, falling back to plain text only when the tool is unavailable. When the choice is hard to reverse and several options are defensible, put each option's upside, downside, and the recommendation's reason in your message and keep the options to a name and a one-line summary. Never require free text.
+
+After the answer, update the spec and affected ACs—recording the chosen option, the main rejected one, and the rationale you presented—recompute verification obligations, and continue without creating a separate plan.
 
 ### 5. Review against the contract
 
