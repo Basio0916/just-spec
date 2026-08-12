@@ -2,20 +2,30 @@
 
 [日本語版はこちら / Japanese](./README.ja.md)
 
+**Just the spec — that's all your agent needs.**
+
 **Persistent What. Ephemeral How.**
 
-Just Spec is the upstream half of loop engineering for Claude Code.
+Just Spec has no plan, no task list, and no execution machinery. It settles a single spec with you in conversation and hands that spec straight to `/goal`. That is how the name reads: *just the spec*.
 
-The loop itself already exists. Claude Code's `/goal` takes a completion condition, has an evaluator check it after every turn, and keeps Claude working until it holds. What a loop cannot supply for itself is its reference signal — detectors sharp enough to separate *done* from *nearly done*. Just Spec produces that signal with you, in conversation, as a spec whose acceptance criteria are verifiable.
+Claude Code's `/goal` is the official loop. You give it a completion condition, an evaluator checks that condition after every turn, and the session keeps working until it holds — nobody has to sit with it. What decides whether the run stops where you wanted is the condition itself. A loop cannot supply its own reference signal, and a condition improvised at the prompt is where an unattended run goes wrong.
 
-The name reads as *just the spec*: the spec is the only thing this workflow asks you to produce, and the only thing it hands to the loop.
+Just Spec is the side that makes the condition; `/goal` is the side that runs it. The condition comes out of a disciplined conversation rather than a template:
+
+- Only material ambiguity reaches you. Four conditions decide what counts, and the existence of a conventional default is not one of them.
+- Expensive branches arrive as options with a recommendation, each with its upside and downside, so answering is a choice rather than an essay.
+- Anything inferred rather than answered is marked `🤖`, so reading the spec separates confirming your own decision from checking a guess.
+- A hard-to-reverse choice is recorded together with the option that was rejected and the reason for choosing against it — the part code never shows.
+- The rules of the run are written into the spec itself: evidence reported per acceptance criterion, and a stop with a question instead of a completion when a criterion turns out to be unsatisfiable.
+
+Hand the finished spec to `/goal` and the run goes to completion unattended, reporting evidence for every acceptance criterion.
 
 ```text
 Request
    ↓
 /just-spec:spec        ← you decide material ambiguity here
    ↓
-Behavioral Contract    ← the reference signal
+Behavioral Contract    ← the completion condition
    ↓
 /goal <one line>       ← Claude Code's own loop runs it
    ↓
@@ -25,9 +35,7 @@ Implementation + AC Evidence
 What follows from that:
 
 - **The spec is both the output of the conversation and the input to the loop.** You read it, and so does the evaluator, so its acceptance criteria have to be checkable from what the run reports.
-- **There is no build command.** Iteration, retry, and stop judgement belong to `/goal`. Just Spec ends by handing you the line that starts it.
 - **Done means the contract is satisfied, not that a plan was executed.** The acceptance criteria are the detectors; the run reports evidence for each one, and partial satisfaction is not completion.
-- **You are the decision maker, not a document reviewer.** Just Spec brings each material decision to you with options and a recommendation, and you choose. It does not create a step where you go hunting through a document for problems.
 
 ## What Just Spec Persists
 
@@ -44,11 +52,11 @@ Out of Scope
 
 There is no design document, implementation plan, task breakdown, or test plan. That is a consequence of where review happens rather than a goal in itself: every additional artifact is another place your attention has to go.
 
-The model decides how to implement the change from the current codebase when it builds.
+The model decides how to implement the change from the current codebase at implementation time.
 
-## Two Commands
+## The Command
 
-Just Spec has only two skills.
+Just Spec exposes one skill.
 
 ### `/just-spec:spec`
 
