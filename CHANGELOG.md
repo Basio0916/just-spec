@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.1 — 2026-08-12
+
+Settled how the name reads and aligned every surface that introduces the project with the position it now holds: `/goal` runs the loop, and Just Spec makes the condition it runs on.
+
+- Moved the reading of the name to the top of README (English and Japanese): *just the spec* — no plan, no task list, no execution machinery, one spec handed straight to `/goal`. `Persistent What. Ephemeral How.` stays directly below it.
+- Rewrote the opening so the division of labour is clear before the first section heading: `/goal` runs unattended until its condition holds, Just Spec builds that condition through the discipline of the interview — four materiality conditions, options with a recommendation, `🤖` on inferred items, rejected options recorded with the reason, and per-AC evidence plus a stop-with-question written into the spec itself.
+- Corrected the two-command leftovers: the section is now `The Command` / 「ひとつのコマンド」, and the plugin exposes one skill.
+- Replaced the "low-ceremony" self-description everywhere it introduced the project — the GitHub repository description, `marketplace.json`, `plugin.json`, `plugins/just-spec/README.md`, and the publish example in `docs/PUBLISH.md` — and dropped the `low-ceremony` tag from both manifests. Lightness was never the claim; the claim is that the spec is a sufficient contract for `/goal`.
+- Left the skills, templates, and references untouched. This release changes documentation and metadata only.
+
 ## 0.7.0 — 2026-08-12
 
 Repositioned Just Spec as the upstream half of loop engineering: execution moved to Claude Code's `/goal`, the `build` command was removed, and the spec phase was raised to the standard an unattended run requires.

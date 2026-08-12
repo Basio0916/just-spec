@@ -35,7 +35,7 @@ From the repository root:
 gh auth status
 gh repo create Basio0916/just-spec \
   --public \
-  --description "Persistent What, Ephemeral How — low-ceremony spec-to-build workflow for Claude Code" \
+  --description "Turn ambiguous requests into verifiable completion conditions for Claude Code's /goal — through disciplined dialogue, not templates." \
   --source . \
   --remote origin \
   --push

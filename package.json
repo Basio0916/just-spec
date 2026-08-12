@@ -1,6 +1,6 @@
 {
   "name": "just-spec",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "private": true,
   "description": "Validation and packaging for the Just Spec Claude Code plugin marketplace",
   "type": "module",
