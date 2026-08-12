@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "just-spec",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Low-ceremony behavioral contracts with adaptive ambiguity resolution and contract-derived verification",
   "owner": {
     "name": "Basio0916",
@@ -12,7 +12,7 @@
       "name": "just-spec",
       "source": "./plugins/just-spec",
       "description": "Resolve material ambiguity into a behavioral contract, then derive implementation and verification from that contract without persistent plans or microtasks.",
-      "version": "0.6.0",
+      "version": "0.7.0",
       "author": {
         "name": "Basio0916",
         "url": "https://github.com/Basio0916"

@@ -14,6 +14,18 @@ Hard to reverse means overturning the choice later costs a lot even though nothi
 - cache coherence strategy;
 - schema design.
 
+## Defaults do not excuse a question
+
+A plausible default makes a decision easy to miss, not safe to skip. Whether a default exists and whether the choice is materially ambiguous are separate judgements. These types slip through most often:
+
+- the sort order of a list;
+- the source of a date or time — the business current date versus the real clock;
+- how items are numbered or ordered;
+- precedence when values or timestamps tie;
+- rounding and boundary handling.
+
+Each has an obvious-looking answer and changes what users observe, and the run that would have inferred it has nobody watching. Ask instead. The widening stops there: a question that focused inspection or the requirements answer stays unasked.
+
 Usually decide without asking:
 
 - filenames, type names, helper shape, and directory placement;

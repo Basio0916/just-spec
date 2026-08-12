@@ -100,8 +100,8 @@ try {
   fail(`cannot read skill directory: ${error.message}`);
 }
 
-if (JSON.stringify(skillNames) !== JSON.stringify(["build", "spec"])) {
-  fail(`prototype must expose exactly spec and build skills; found: ${skillNames.join(", ")}`);
+if (JSON.stringify(skillNames) !== JSON.stringify(["spec"])) {
+  fail(`prototype must expose exactly the spec skill; found: ${skillNames.join(", ")}`);
 }
 
 const checks = {
@@ -117,27 +117,18 @@ const checks = {
       ".just-spec/specs/",
       "Do not create `design.md`, `plan.md`, `tasks.md`, `test-plan.md`",
       "Do not invoke subagents",
-      "references/ambiguity.md"
-    ]
-  },
-  build: {
-    maxWords: 1250,
-    required: [
-      "Verify behavior compliance, not plan completion",
-      "Tests come from the contract, not the implementation",
-      "Test order is not a quality gate",
-      "derive a verification map from the Spec/ACs",
-      "do not replace expected values with observed implementation output",
-      "reproduce the reported failure before the fix when practical",
-      "Do not create `plan.md`, `design.md`, `tasks.md`, `test-plan.md`",
-      "Do not invoke subagents by default",
-      "status: verified",
-      "references/verification.md"
+      "references/ambiguity.md",
+      "executed unattended by `/goal`, never by this skill",
+      "/goal Implement the spec at <spec-path>",
+      "Offer it only when `status` is `ready`",
+      "A conventional default is never a reason to skip a question",
+      "states its observation boundary",
+      "Keep the template's Completion section verbatim"
     ]
   }
 };
 
-for (const name of ["spec", "build"]) {
+for (const name of ["spec"]) {
   const relative = `plugins/just-spec/skills/${name}/SKILL.md`;
   let text = "";
   try {
@@ -169,8 +160,8 @@ const requiredFiles = [
   "plugins/just-spec/skills/spec/templates/spec.md",
   "plugins/just-spec/skills/spec/templates/overview.md",
   "plugins/just-spec/skills/spec/examples/account-deletion.md",
-  "plugins/just-spec/skills/build/references/verification.md",
   "README.md",
+  "README.ja.md",
   "docs/PHILOSOPHY.md",
   "docs/INTERVIEW.md",
   "docs/VERIFICATION.md",
@@ -222,8 +213,7 @@ for (const phrase of [
 }
 
 for (const [relative, maxWords] of [
-  ["plugins/just-spec/skills/spec/references/ambiguity.md", 900],
-  ["plugins/just-spec/skills/build/references/verification.md", 1200]
+  ["plugins/just-spec/skills/spec/references/ambiguity.md", 900]
 ]) {
   const text = await readFile(path.join(root, relative), "utf8");
   const count = words(text);
@@ -231,26 +221,30 @@ for (const [relative, maxWords] of [
   else notes.push(`${relative}: ${count}/${maxWords} words (progressive-disclosure size budget)`);
 }
 
-const verificationReference = await readFile(
-  path.join(root, "plugins/just-spec/skills/build/references/verification.md"),
-  "utf8"
-);
-for (const phrase of [
-  "This is not formal independence",
-  "Expected behavior must still come from the contract",
-  "Reproduce the reported failure before applying the fix when practical",
-  "A separate agent, evaluator-owned hidden tests, or human review can provide stronger independence",
-  "If implementation and test share the same mistaken interpretation"
-]) {
-  if (!verificationReference.includes(phrase)) {
-    fail(`verification.md: missing oracle-discipline invariant: ${phrase}`);
+const completionCarriers = [
+  "plugins/just-spec/skills/spec/templates/spec.md",
+  "plugins/just-spec/skills/spec/examples/account-deletion.md"
+];
+for (const relative of completionCarriers) {
+  const text = await readFile(path.join(root, relative), "utf8");
+  if (!/^## Completion$/m.test(text)) {
+    fail(`${relative}: missing the fixed Completion section that carries the run rules`);
+  }
+  for (const phrase of [
+    "Partial satisfaction",
+    "per-AC evidence table (AC / result / evidence)",
+    "Expected results come from this spec",
+    "do not declare completion",
+    "stop instead of retrying indefinitely",
+    "set this spec's `status` to `verified`"
+  ]) {
+    if (!text.includes(phrase)) fail(`${relative}: Completion section missing invariant: ${phrase}`);
   }
 }
 
 const activeVerificationFiles = [
   "plugins/just-spec/skills/spec/SKILL.md",
-  "plugins/just-spec/skills/build/SKILL.md",
-  "plugins/just-spec/skills/build/references/verification.md",
+  "plugins/just-spec/skills/spec/templates/spec.md",
   "README.md",
   "docs/PHILOSOPHY.md",
   "docs/VERIFICATION.md"
@@ -288,5 +282,6 @@ console.log(`- skills: ${skillNames.join(", ")}`);
 console.log("- marketplace and plugin manifests: valid JSON");
 console.log("- dynamic ambiguity interview invariants: present");
 console.log("- contract-derived oracle discipline: present");
+console.log("- fixed Completion section in template and example: present");
 console.log("- obsolete numerical interview rules: absent");
 console.log("- persistent plan/design/task/test-plan artifacts: absent");

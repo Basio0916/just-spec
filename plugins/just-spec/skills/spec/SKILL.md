@@ -1,6 +1,6 @@
 ---
 name: spec
-description: Create or update a lean behavioral contract from a change request, issue, or document. Use explicitly when behavior must be clarified before implementation.
+description: Create or update a lean behavioral contract from a change request, issue, or document, and hand it to Claude Code's /goal. Use explicitly when behavior must be clarified before implementation.
 disable-model-invocation: true
 argument-hint: <change request, issue, or source document>
 ---
@@ -9,11 +9,12 @@ argument-hint: <change request, issue, or source document>
 
 Input: `$ARGUMENTS`
 
-Create the smallest behavioral contract needed to implement and verify the request safely. Persist **what must be true**; leave **how to implement it** as ephemeral reasoning for build time.
+Create the smallest behavioral contract that makes the request implementable and verifiable, then hand it to `/goal`. Persist **what must be true**; leave **how to implement it** ephemeral.
 
 ## Principles
 
 - Acceptance criteria describe observable behavior through a public interface, stable domain boundary, or observable state.
+- The contract is executed unattended by `/goal`, never by this skill: it must be complete enough that the run never needs to ask, and every AC checkable from what the run reports.
 - Tests come from the contract, not the implementation. Expected results come from the request, an explicit existing contract, or a resolved material decision—not from copying the current implementation.
 - Exclude private methods, class structure, file layout, algorithms, mock interactions, and implementation order unless they are themselves contractual.
 - Do not create `design.md`, `plan.md`, `tasks.md`, `test-plan.md`, implementation steps, or subagent work queues. Do not invoke subagents.
@@ -27,9 +28,9 @@ Read `${CLAUDE_SKILL_DIR}/references/ambiguity.md` only when classification, int
 
 ### 1. Read only the context needed
 
-Read the request, named source material, repository guidance such as `CLAUDE.md` or `AGENTS.md`, and the nearest relevant code, tests, and existing Just Specs.
+Read the request, named source material, repository guidance such as `CLAUDE.md` or `AGENTS.md`, and the nearest relevant code, tests, and existing Just Specs. Stop once you can distinguish product behavior from implementation choice.
 
-Stop once you can distinguish product behavior from implementation choice. Existing code and tests are evidence of current behavior, not automatic authority when they conflict with the request or an explicit external contract.
+Existing code and tests are evidence of current behavior, not authority when they conflict with the request or an explicit external contract.
 
 ### 2. Define scope and material ambiguity
 
@@ -37,8 +38,10 @@ Prefer one spec for one coherent outcome. An uncertainty is material only when a
 
 1. focused inspection does not resolve it;
 2. multiple plausible answers remain;
-3. the choice has externally observable impact—behavior, a public/shared contract, security/privacy, retention/migration, compatibility, destructive behavior, business policy—or is hard to reverse, meaning overturning it later costs a lot even though nothing observable differs today (transaction boundaries, event publication, locking and concurrency, cache coherence, schema design); and
+3. the choice has externally observable impact—behavior, a public/shared contract, security/privacy, retention/migration, compatibility, destructive behavior, business policy—or is hard to reverse, meaning overturning it later costs a lot even though nothing observable differs today; and
 4. a wrong assumption creates meaningful rework or risk.
+
+A conventional default is never a reason to skip a question: judge conditions 3 and 4 independently of it. List sort order, the source of a date or time, numbering, tie-breaking, and rounding all have obvious defaults and still change observable behavior. The widening stops at defaults; anything condition 1 resolves stays unasked.
 
 Split only when capabilities have distinct goals and acceptance criteria and can be implemented, verified, released, or changed independently. Do not split by controller/service/repository/frontend/test layers.
 
@@ -48,30 +51,27 @@ Choose the unresolved decision whose answer is most likely to eliminate or resha
 
 Ask through the `AskUserQuestion` tool, one question per prompt, with the recommended option first and marked as recommended. Fall back to plain text only when the tool is unavailable. Always state the contract impact in one sentence.
 
-When the choice is hard to reverse or externally observable and several options are defensible, put the comparison in your message—each option's upside and downside, then the recommendation and its reason—within a few lines per option, and keep the tool options to a name and a one-line summary. Ground the recommendation in Out of Scope, existing Decisions, or the codebase's current standard.
-
-For simple confirmations and factual checks, skip the written comparison and offer the options alone. Not every question is a comparison.
+When several options are defensible for a hard-to-reverse or externally observable choice, put the comparison in your message—each option's upside and downside, then the recommendation and its reason, grounded in Out of Scope, existing Decisions, or the current codebase standard—and keep the tool options to a name and a one-line summary. Simple confirmations skip it.
 
 The human answers by choosing. Never require free text; accept it only as an optional note.
 
-Apply the answer to the provisional contract, then recompute all remaining ambiguities. Drop questions that became irrelevant and rewrite those whose meaning changed.
+Apply the answer, then recompute the remaining ambiguities. Drop questions that became irrelevant and rewrite those whose meaning changed.
 
-For long discussions, briefly summarize resolved decisions and remaining material issues. This is orientation, not an approval gate.
+For long interviews, summarize what is resolved and what remains; orientation, not a gate.
 
 ### 4. Check behavioral readiness
 
 Do not mark the spec ready until all are true:
 
-- the goal is clear;
-- user-observable behavior is unambiguous;
-- each AC is verifiable through a stable observation boundary;
-- another implementer can derive expected results from the AC without treating the implementation as the oracle;
+- the goal and the user-observable behavior are unambiguous;
+- each AC is verifiable through a stable observation boundary, so another implementer can derive expected results without treating the implementation as the oracle;
+- every UI AC's observation boundary is reachable with the current test basis, or its verification means is settled here as an answered question or an explicit Constraint;
 - required decisions, contracts, and invariants are resolved; and
 - no open issue can materially change whether the implementation is correct.
 
 Question count is not part of the readiness test.
 
-If a cohesive change is too large for one bounded build and has no meaningful independent slice, narrow the release scope or recommend a more rigorous workflow.
+If a cohesive change is too large for one bounded run with no independent slice, narrow the release scope.
 
 ### 5. Write the contract
 
@@ -85,40 +85,48 @@ Include only:
 - minimal Context
 - numbered Requirements
 - numbered Acceptance Criteria
+- the fixed Completion section
 - Material Decisions and rationale
 - Constraints
 - Out of Scope
 - Dependencies / Shared Contracts when needed
 - `Open Questions: None`
 
-Each AC should state enough precondition/input, action/event, and observable result to serve as an independent verification oracle. Given/When/Then is optional.
+Each AC states enough precondition/input, action/event, and observable result to serve as an independent verification oracle. Given/When/Then is optional.
 
-Mark every item you inferred from the codebase or existing specs with `🤖`. Leave items the human confirmed unmarked. The mark tells the reviewer which lines are your reasoning rather than their own decision, so keep it to that one character and do not let it crowd the page.
+An AC about screen output or screen interaction also states its observation boundary: what is executed and in which output the result is checked—"the rendered markup distinguishes rank and status", "an actionable button is shown only when the action can succeed". Otherwise verification drifts to a shallower layer. Do not apply it to domain or service ACs.
 
-Record each hard-to-reverse choice as the chosen option, the main rejected option, and the rationale—carried over from the comparison you presented and marked `🤖` because it is yours, not theirs. Add the invariant it depends on and the condition that should reopen it only when they apply. Never ask the human why they chose. When they choose against your recommendation, offer an optional one-line note and record `chose against the recommendation (no reason given)` if they skip it.
+Keep the template's Completion section verbatim: it is the only place the rules of the run reach an unattended session.
 
-If multiple specs are semantically necessary, place them under `.just-spec/specs/<initiative>/` and create `overview.md` from `${CLAUDE_SKILL_DIR}/templates/overview.md`. Record only shared decisions, vocabulary, cross-spec contracts, invariants, and the spec list—not a roadmap or task order.
+Mark items you inferred from the codebase or existing specs with `🤖`, and leave the human's own decisions unmarked.
+
+Record each hard-to-reverse choice as the chosen option, the main rejected option, and your rationale, marked `🤖`. Never ask why they chose; against the recommendation, offer an optional one-line note.
+
+If multiple specs are semantically necessary, place them under `.just-spec/specs/<initiative>/` with an `overview.md` from `${CLAUDE_SKILL_DIR}/templates/overview.md`, holding only shared decisions, vocabulary, cross-spec contracts, invariants, and the spec list.
 
 ### 6. Validate and hand off
 
 Confirm that:
 
 - every requirement is covered by one or more ACs;
-- every expected result traces to the contract rather than production internals;
-- internal refactoring would not invalidate the ACs;
+- every expected result traces to the contract and survives an internal refactor;
 - no material open question, contradiction, speculative feature, or implementation plan remains; and
-- the scope fits one coherent `/just-spec:build` run.
+- the scope fits one coherent run.
 
-Fix non-material gaps yourself. Ask again only if a new material decision is required.
+Fix non-material gaps yourself; ask again only for a new material decision.
 
 Report:
 
-- the created or updated spec path;
-- key material decisions;
-- assumptions resolved without asking;
+- the spec path, key material decisions, and assumptions resolved without asking;
 - a line telling the human that this spec is the only artifact the workflow asks them to review, and that the `🤖` items deserve their attention first; and
-- the next command:
+- the `/goal` line below, in a copyable block.
 
-`/just-spec:build <spec-path-or-slug>`
+Fill in only the spec path; do not translate or enumerate Requirements or ACs there. The condition is the same length whatever the spec's size, and the run reads the file itself.
 
-That line is orientation, not an approval gate. Give the next command in the same report and do not wait for sign-off.
+```text
+/goal Implement the spec at <spec-path>. Done only when: you have read it; every AC in it is PASS with executed evidence; you reported a per-AC evidence table (AC / result / evidence); no Constraint is violated. Partial satisfaction is not done. If an AC is unsatisfiable or keeps failing, do not complete: report the conflict, what you tried, and the question the human must decide, then stop.
+```
+
+Offer it only when `status` is `ready`; otherwise say what remains instead.
+
+That report is orientation, not an approval gate. Do not wait for sign-off, and do not start implementing.

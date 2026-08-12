@@ -4,26 +4,29 @@
 
 **Persistent What. Ephemeral How.**
 
-Just Spec is a spec-driven development plugin for Claude Code that concentrates human review on the one artifact worth reviewing: the spec.
+Just Spec is the upstream half of loop engineering for Claude Code.
+
+The loop itself already exists. Claude Code's `/goal` takes a completion condition, has an evaluator check it after every turn, and keeps Claude working until it holds. What a loop cannot supply for itself is its reference signal — detectors sharp enough to separate *done* from *nearly done*. Just Spec produces that signal with you, in conversation, as a spec whose acceptance criteria are verifiable.
+
+The name reads as *just the spec*: the spec is the only thing this workflow asks you to produce, and the only thing it hands to the loop.
 
 ```text
 Request
    ↓
-/just-spec:spec
+/just-spec:spec        ← you decide material ambiguity here
    ↓
-Behavioral Contract   ← the one thing you review
+Behavioral Contract    ← the reference signal
    ↓
-/just-spec:build
+/goal <one line>       ← Claude Code's own loop runs it
    ↓
 Implementation + AC Evidence
 ```
 
-A typical workflow spreads your attention across requirements, design, tasks, and generated code. Reviewing code costs more as more code is generated. Reviewing a spec costs the same one screen every time. Just Spec moves your attention from the place that scales with output to the place that does not.
+What follows from that:
 
-Three things follow from that:
-
-- **The spec is the single review point.** There is no plan and no task list to approve, so nothing competes with the contract for your attention.
-- **Done means the contract is satisfied, not that a plan was executed.** The acceptance criteria are the detectors; the build runs against them and reports evidence for each one.
+- **The spec is both the output of the conversation and the input to the loop.** You read it, and so does the evaluator, so its acceptance criteria have to be checkable from what the run reports.
+- **There is no build command.** Iteration, retry, and stop judgement belong to `/goal`. Just Spec ends by handing you the line that starts it.
+- **Done means the contract is satisfied, not that a plan was executed.** The acceptance criteria are the detectors; the run reports evidence for each one, and partial satisfaction is not completion.
 - **You are the decision maker, not a document reviewer.** Just Spec brings each material decision to you with options and a recommendation, and you choose. It does not create a step where you go hunting through a document for problems.
 
 ## What Just Spec Persists
@@ -70,6 +73,8 @@ It asks about **material ambiguity** — decisions that can change whether the i
 
 That last group matters because nothing externally observable distinguishes the options today. The cost arrives later, when the choice has to be undone.
 
+A decision is also not skipped just because a conventional default exists. List sort order, whether a date comes from the business current date or the real clock, tie-breaking, rounding — they look settled and still change what people see. Nobody is watching the run, so an inferred default has no second chance to be noticed.
+
 Questions arrive one at a time, as a selection with a recommendation. When several options are genuinely defensible, you also get each option's upside and downside and the reason behind the recommendation, so answering is a choice rather than an essay.
 
 After every answer, Just Spec reevaluates the remaining ambiguities instead of following a predefined questionnaire. There is no fixed question limit.
@@ -92,15 +97,15 @@ Two kinds of content live in a spec: decisions you confirmed by answering, and s
 
 `🤖` means Just Spec inferred this item and recommends you confirm it. Unmarked items came from your answers.
 
-### `/just-spec:build`
+### Running the spec
 
-Implements a ready Just Spec contract.
+When the spec is ready, `/just-spec:spec` ends by handing you a line to run. It points at the spec file and stays the same length whether the spec has two acceptance criteria or thirty — the run reads the file itself.
 
 ```text
-/just-spec:build <spec-path-or-slug>
+/goal Implement the spec at .just-spec/specs/<slug>.md. Done only when: you have read it; every AC in it is PASS with executed evidence; you reported a per-AC evidence table (AC / result / evidence); no Constraint is violated. Partial satisfaction is not done. If an AC is unsatisfiable or keeps failing, do not complete: report the conflict, what you tried, and the question the human must decide, then stop.
 ```
 
-The model may plan internally as needed, but the implementation plan remains ephemeral and is not persisted as an artifact.
+From there the loop is Claude Code's. Nobody has to sit with it: the evaluator checks the condition after every turn and the session continues until it holds.
 
 ```text
 Behavioral Contract
@@ -113,7 +118,19 @@ Behavioral Contract
                          AC Evidence
 ```
 
-At the end of the build, Just Spec reports evidence for each Acceptance Criterion.
+The model may plan internally as needed, but the implementation plan remains ephemeral. No plan and no task list are produced.
+
+Where `/goal` is unavailable — an older Claude Code, or goals turned off — ask for the same thing in an attended session. The definition of done does not change:
+
+```text
+Implement .just-spec/specs/<slug>.md. Follow its Completion section: every AC PASS with
+executed evidence, a per-AC evidence table, no Constraint violated, and stop with a question
+instead of completing if an AC turns out to be unsatisfiable.
+```
+
+#### Where `/just-spec:build` went
+
+Earlier versions shipped a `build` command that implemented the spec itself. Execution now belongs to `/goal`, which is the official loop and the one worth trusting when no one is watching, so `build` was removed rather than kept as a wrapper around it. If you were using it, run the line offered at the end of `/just-spec:spec` instead; for a spec written before this change, the same line works with its path.
 
 ## Principles
 
@@ -169,6 +186,8 @@ A missing contract produces no failing test, no error, and no review finding. It
 
 That is the bet this workflow makes, and it is why spec review is the one review Just Spec asks you for. Everything else is arranged so that you still have the attention left to do it.
 
+The evaluator has a blind spot of the same shape. It judges the run from what the run wrote into the conversation, so it never checks whether the evidence table is honest. A `PASS` recorded for a check that was never executed reads exactly like one that was, and passes.
+
 ## Just Spec and Plan Mode
 
 Plan Mode is a permission mode: Claude Code investigates and proposes before it is allowed to edit, and you approve the proposal.
@@ -183,7 +202,7 @@ Just Spec is not a permission mode, and the difference is not one of capability.
 
 The two compose. Plan Mode governs when Claude Code may edit; Just Spec governs what the change has to satisfy.
 
-Detailed planning remains valuable for long-running autonomous work, large migrations, complex parallel execution, or changes where coordination itself is the hard problem.
+Detailed planning remains valuable for large migrations, complex parallel execution, or changes where coordination itself is the hard problem.
 
 ## Installation
 
@@ -215,24 +234,25 @@ Create a spec:
 
 If there is material ambiguity, Just Spec asks only the questions required to make the behavior unambiguous.
 
-Once the spec is ready:
+Once the spec is ready, Just Spec prints the `/goal` line for it. Run that line, and the session works until every acceptance criterion is satisfied:
 
 ```text
-/just-spec:build account-deletion
+/goal Implement the spec at .just-spec/specs/account-deletion.md. Done only when: ...
 ```
 
-The build finishes with an implementation summary and evidence for each Acceptance Criterion.
+The run finishes with an implementation summary and evidence for each Acceptance Criterion.
 
 ## When Not to Use Just Spec
 
 Just Spec is not trying to be the right workflow for every kind of development. Deciding whether it fits is your call, not the tool's — it will not refuse a request. These are the cases where a more rigorous planning and review process tends to be a better fit:
 
-- Long-running unattended execution
 - Large-scale migrations
 - Multi-agent parallel development
 - Security-critical changes
 - Complex architectural changes
 - Work requiring strong audit or approval processes
+
+Unattended execution is not on that list. With `/goal` driving the run it is the normal path, and what decides whether it goes well is whether the spec is complete enough to be executed without asking you anything mid-run. That is why the spec phase asks about decisions that have a plausible default, and why acceptance criteria for screen behavior say which output they are checked in.
 
 Just Spec does not argue that those workflows are unnecessary. It explores a narrower question:
 
@@ -242,14 +262,13 @@ Just Spec does not argue that those workflows are unnecessary. It explores a nar
 
 Just Spec is currently experimental.
 
-It deliberately exposes only two commands:
+It deliberately exposes one command:
 
 ```text
 /just-spec:spec
-/just-spec:build
 ```
 
-The goal is not to add more workflow. The goal is to keep human attention on the one document where spending it changes the outcome.
+Execution is Claude Code's `/goal`. The goal is not to add more workflow. The goal is to keep human attention on the one document where spending it changes the outcome, and to leave the loop to the tool that already has one.
 
 ## License
 

@@ -32,6 +32,16 @@ The second reason is easy to lose. Transaction boundaries, event publication sha
 
 Reversible choices stay with the model. Class names, file placement, helper shape, and test placement do not become questions merely because more than one answer exists.
 
+## A default is not an answer
+
+The failure this rule exists for is quiet. A question is never asked, because one answer looks natural: the overdue list is sorted by due date ascending; the reservation takes its timestamp from the application's current date. Both were inferred, both were wrong, and neither produced anything that looked like a mistake at the time.
+
+So the existence of a conventional default is judged separately from whether the decision is material. Types that slip through this way: the sort order of a list; the source of a date or time, meaning the business current date versus the real clock; how items are numbered or ordered; precedence when values or timestamps tie; rounding and boundary handling.
+
+This widens what gets asked in one direction only. A question that focused inspection or the requirements already answer is still not asked — the change forbids skipping on the grounds that a default exists, nothing more.
+
+The reason it matters more than it used to: the run is unattended. An inferred default used to have a human sitting next to it who might notice. It no longer does.
+
 ## Highest-leverage questions
 
 Prefer a question when its answer:
@@ -82,3 +92,7 @@ A long interview may include short checkpoints listing resolved decisions and re
 ## Completion condition
 
 The interview ends when the contract is behaviorally ready: its goal, observable rules, ACs, decisions, and shared contracts are clear enough that different reasonable implementers should agree on what success means.
+
+Readiness also means executable without anyone present. If an AC about screen behavior needs an observation boundary the repository has no test basis for, that is settled during the interview — as a question, or as an explicit Constraint recording how it will be verified. Deferring it leaves the decision to a session that cannot ask.
+
+The interview's last act is the `/goal` line that runs the spec. It is offered only once the contract is ready; an unfinished contract is not handed to an unattended session.

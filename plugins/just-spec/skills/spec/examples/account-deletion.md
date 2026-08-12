@@ -29,6 +29,16 @@ The product already supports sign-out and stores user-authored content. It does 
 - **AC3:** Given an account pending deletion for at least 14 days, when deletion processing completes, then sign-in and profile retrieval fail without exposing retained internal identifiers.
 - **AC4:** A user cannot request deletion of another user's account.
 
+## Completion
+
+This section is fixed. Keep it in every spec: it is what carries the rules into a run that nobody is watching.
+
+- Completion means every AC is `PASS` with executed evidence, reported as a per-AC evidence table (AC / result / evidence). Partial satisfaction—"the main ACs are met"—is not completion.
+- Expected results come from this spec, never from the current implementation or from observed output: verification is contract-derived. Evidence names the check that was run, its command, and what it printed; a check that was not executed is never reported as `PASS`.
+- If satisfying one AC necessarily violates another AC or a Constraint, do not declare completion. Report the conflict and what was attempted, then stop.
+- If the same AC keeps failing, stop instead of retrying indefinitely. Report what was attempted, the detector output, and the suspected cause, framed as the question the human must decide: change the spec, or relax the constraint.
+- On completion, set this spec's `status` to `verified` when every AC is `PASS`, and to `partial` otherwise.
+
 ## Decisions
 
 - **D1:** Deletion uses a 14-day recovery period rather than immediate hard deletion — this reduces accidental irreversible loss.

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.0 — 2026-08-12
+
+Repositioned Just Spec as the upstream half of loop engineering: execution moved to Claude Code's `/goal`, the `build` command was removed, and the spec phase was raised to the standard an unattended run requires.
+
+- Removed `/just-spec:build` and its verification reference. The plugin now exposes one command, and the loop — driving, retrying, judging completion — is Claude Code's own `/goal`.
+- Made `/just-spec:spec` end by offering a copyable `/goal` line for a `ready` spec. The condition points at the spec path, is the same length whatever the spec's size, and requires reading the spec, every AC `PASS`, a per-AC evidence table, no Constraint violation, and a stop-with-question instead of completion when an AC is unsatisfiable.
+- Moved the rules of the run into the spec: `templates/spec.md` now carries a fixed Completion section covering the definition of done, contract-derived expected results, honest evidence, unsatisfiable ACs, repeatedly failing fixes, and the closing `status` update.
+- Stopped a conventional default from excusing a question. The existence of a default and the materiality of the decision are judged separately, with list sort order, the source of a date or time, numbering, tie-breaking, and rounding called out as the types that slip through.
+- Required UI acceptance criteria to state their observation boundary — what is executed and in which output the result is checked — and to settle the verification means during the spec phase when the repository lacks the test basis. Domain and service ACs are unchanged.
+- Rewrote README (English and Japanese) around the upstream position, added the attended-session request for environments without `/goal`, documented where `build` went, removed unattended execution from the list of things Just Spec is not for, and stated that the evaluator cannot tell an honest evidence table from a dishonest one.
+- Updated `scripts/validate.mjs` for the single-skill surface and added checks that the fixed Completion section survives in the template and the example.
+- Kept the spec file layout, contract-derived verification, and `Persistent What. Ephemeral How.` unchanged.
+
 ## 0.6.0 — 2026-08-11
 
 Repositioned Just Spec from a lighter spec-driven workflow to one that concentrates human review on the spec, and strengthened what reaches the human and what the spec records.

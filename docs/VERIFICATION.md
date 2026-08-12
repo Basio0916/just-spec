@@ -35,7 +35,7 @@ One model writing both production code and tests is not statistically or organiz
 - tests use stable observable boundaries where practical;
 - the final report exposes evidence per AC rather than treating “all generated tests passed” as sufficient.
 
-Before editing, `/just-spec:build` derives an ephemeral verification map from the contract. It does not persist a test plan, require approval, or force test files to be created first.
+Before editing, the run derives an ephemeral verification map from the contract. Nothing is persisted as a test plan, nothing waits for approval, and no test file has to exist first.
 
 ## Good and bad examples
 
@@ -91,9 +91,13 @@ Unit tests remain useful. They should test contract-derived inputs and outputs, 
 
 Regression work is the main ordering exception. Reproducing the failure before the fix demonstrates that the proposed oracle captures the reported bug. This is recommended when practical, but its purpose is evidence validation—not mandatory TDD-based design discovery.
 
+## Test doubles
+
+Fakes, stubs, and mocks may control nondeterministic or external boundaries. Prefer assertions about the resulting behavior. An interaction assertion is strong evidence only when the interaction is itself contractual, such as emitting a defined event or forbidding an external call. Wiring assertions are not a substitute for behavioral proof.
+
 ## Protecting tests from the implementation
 
-The build skill explicitly rejects:
+The spec's Completion section rejects:
 
 - snapshotting current output and declaring it expected;
 - changing fixtures or expected values just to get green;
@@ -101,10 +105,10 @@ The build skill explicitly rejects:
 - mock call assertions presented as proof of external behavior;
 - line coverage presented as AC coverage.
 
-When a current test conflicts with the ready spec, the agent must determine whether the spec omitted an established behavior or the test is stale. A material change goes through the ambiguity gate and updates the contract first.
+When a current test conflicts with the ready spec, the run must determine whether the spec omitted an established behavior or the test is stale. A material change goes back to `/just-spec:spec` and updates the contract first; a test is never silently rewritten to match the new implementation.
 
 ## Limits
 
 For security-critical, regulated, destructive, or high-cost changes, one-agent oracle discipline may be insufficient. Independent hidden tests, a separate reviewer, formal analysis, or a more rigorous workflow may be warranted.
 
-Just Spec keeps those safeguards outside the default two-command prototype so their cost is paid only when risk justifies it.
+One session writing both the code and its tests can share a single mistaken interpretation, and passing tests alone do not disprove that. Just Spec keeps the heavier safeguards outside the default so their cost is paid only when risk justifies it.

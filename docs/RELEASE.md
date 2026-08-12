@@ -5,7 +5,7 @@
 3. Test local marketplace installation in a clean Claude Code profile.
 4. Exercise `/just-spec:spec` on at least one tiny request, one cohesive request requiring more than five material decisions, and one semantically multi-spec request.
 5. Confirm the interview recomputes ambiguities after each answer, does not split by question count, and uses checkpoints without approval gates.
-6. Exercise `/just-spec:build` and verify honest AC evidence on both passing and unavailable-test cases.
+6. Run the `/goal` line offered at the end of a spec and verify honest AC evidence on both passing and unavailable-test cases.
 7. Confirm feature tests may be written after implementation but derive expected outcomes from ACs, not changed code.
 8. Confirm a practical bug-fix regression test fails on the unfixed baseline.
 9. Review new/changed tests for private-structure coupling and copied production logic.
