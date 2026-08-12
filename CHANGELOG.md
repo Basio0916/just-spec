@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.2 — 2026-08-12
+
+Added the one element the offered `/goal` condition was missing: a turn cap, so a run that fails to converge on a defective spec burns a bounded number of turns instead of looping forever.
+
+- Extended the `/goal` line that `/just-spec:spec` offers with a hard-coded 10-turn cap and a cap-stop report: stop after 10 turns even if not done, declare nothing complete, and report which ACs are PASS, which are not and why, and a summary of what was done. The line remains a fixed template — the only variable part is the spec path.
+- The cap is a runaway guard, not a target: a complete spec normally finishes in far fewer turns, and 10 is set so that normal work splitting, environment hiccups, and an escalation report never reach it. Both READMEs now say so next to the sample, and the attended-session fallback request carries the same cap.
+- Guarded the clause in CI: `scripts/validate.mjs` now requires the cap phrase in the skill, and the skill's word budget rose by the minimal amount the clause costs (1250 → 1285).
+- The interview flow, the spec template, and the question rules are unchanged.
+
 ## 0.7.1 — 2026-08-12
 
 Settled how the name reads and aligned every surface that introduces the project with the position it now holds: `/goal` runs the loop, and Just Spec makes the condition it runs on.

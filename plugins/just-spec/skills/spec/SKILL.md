@@ -124,7 +124,7 @@ Report:
 Fill in only the spec path; do not translate or enumerate Requirements or ACs there. The condition is the same length whatever the spec's size, and the run reads the file itself.
 
 ```text
-/goal Implement the spec at <spec-path>. Done only when: you have read it; every AC in it is PASS with executed evidence; you reported a per-AC evidence table (AC / result / evidence); no Constraint is violated. Partial satisfaction is not done. If an AC is unsatisfiable or keeps failing, do not complete: report the conflict, what you tried, and the question the human must decide, then stop.
+/goal Implement the spec at <spec-path>. Done only when: you have read it; every AC in it is PASS with executed evidence; you reported a per-AC evidence table (AC / result / evidence); no Constraint is violated. Partial satisfaction is not done. If an AC is unsatisfiable or keeps failing, do not complete: report the conflict, what you tried, and the question the human must decide, then stop. Stop after 10 turns even if not done: do not declare completion; report which ACs are PASS, which are not and why, and a summary of what you did, then stop.
 ```
 
 Offer it only when `status` is `ready`; otherwise say what remains instead.

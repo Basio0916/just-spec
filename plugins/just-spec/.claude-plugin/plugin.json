@@ -1,6 +1,6 @@
 {
   "name": "just-spec",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Settle material ambiguity in conversation, persist one behavioral contract whose acceptance criteria are verifiable, and hand it to Claude Code's /goal as the completion condition of an unattended run.",
   "author": {
     "name": "Basio0916",

@@ -114,10 +114,12 @@ Two kinds of content live in a spec: decisions you confirmed by answering, and s
 When the spec is ready, `/just-spec:spec` ends by handing you a line to run. It points at the spec file and stays the same length whether the spec has two acceptance criteria or thirty — the run reads the file itself.
 
 ```text
-/goal Implement the spec at .just-spec/specs/<slug>.md. Done only when: you have read it; every AC in it is PASS with executed evidence; you reported a per-AC evidence table (AC / result / evidence); no Constraint is violated. Partial satisfaction is not done. If an AC is unsatisfiable or keeps failing, do not complete: report the conflict, what you tried, and the question the human must decide, then stop.
+/goal Implement the spec at .just-spec/specs/<slug>.md. Done only when: you have read it; every AC in it is PASS with executed evidence; you reported a per-AC evidence table (AC / result / evidence); no Constraint is violated. Partial satisfaction is not done. If an AC is unsatisfiable or keeps failing, do not complete: report the conflict, what you tried, and the question the human must decide, then stop. Stop after 10 turns even if not done: do not declare completion; report which ACs are PASS, which are not and why, and a summary of what you did, then stop.
 ```
 
 From there the loop is Claude Code's. Nobody has to sit with it: the evaluator checks the condition after every turn and the session continues until it holds.
+
+The 10-turn cap in the condition is a runaway guard, not a target: a complete spec normally finishes in far fewer turns. If the cap fires, suspect the spec and start from the unmet ACs the run reported.
 
 ```text
 Behavioral Contract
@@ -145,7 +147,8 @@ Where `/goal` is unavailable — an older Claude Code, or goals turned off — a
 ```text
 Implement .just-spec/specs/<slug>.md. Follow its Completion section: every AC PASS with
 executed evidence, a per-AC evidence table, no Constraint violated, and stop with a question
-instead of completing if an AC turns out to be unsatisfiable.
+instead of completing if an AC turns out to be unsatisfiable. Stop after 10 turns even if
+not done, reporting which ACs are PASS, which are not and why.
 ```
 
 #### Where `/just-spec:build` went

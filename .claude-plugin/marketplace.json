@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "just-spec",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Turn ambiguous requests into verifiable completion conditions for Claude Code's /goal — through disciplined dialogue, not templates",
   "owner": {
     "name": "Basio0916",
@@ -12,7 +12,7 @@
       "name": "just-spec",
       "source": "./plugins/just-spec",
       "description": "Settle material ambiguity in conversation, persist one behavioral contract whose acceptance criteria are verifiable, and hand it to Claude Code's /goal as the completion condition of an unattended run.",
-      "version": "0.7.1",
+      "version": "0.7.2",
       "author": {
         "name": "Basio0916",
         "url": "https://github.com/Basio0916"
