@@ -4,15 +4,13 @@
 
 **Just the spec — that's all your agent needs.**
 
-**Persistent What. Ephemeral How.**
-
 Just Spec has no plan, no task list, and no execution machinery. It settles a single spec with you in conversation and hands that spec straight to `/goal`. That is how the name reads: *just the spec*.
 
 Claude Code's `/goal` is the official loop. You give it a completion condition, an evaluator checks that condition after every turn, and the session keeps working until it holds — nobody has to sit with it. What decides whether the run stops where you wanted is the condition itself. A loop cannot supply its own reference signal, and a condition improvised at the prompt is where an unattended run goes wrong.
 
 Just Spec is the side that makes the condition; `/goal` is the side that runs it. The condition comes out of a disciplined conversation rather than a template:
 
-- Only material ambiguity reaches you. Four conditions decide what counts, and the existence of a conventional default is not one of them.
+- The only questions that reach you are decisions that can change whether the implementation is correct, and decisions that would be expensive to overturn later. A question is not skipped just because the answer looks settled.
 - Expensive branches arrive as options with a recommendation, each with its upside and downside, so answering is a choice rather than an essay.
 - Anything inferred rather than answered is marked `🤖`, so reading the spec separates confirming your own decision from checking a guess.
 - A hard-to-reverse choice is recorded together with the option that was rejected and the reason for choosing against it — the part code never shows.
@@ -36,23 +34,6 @@ What follows from that:
 
 - **The spec is both the output of the conversation and the input to the loop.** You read it, and so does the evaluator, so its acceptance criteria have to be checkable from what the run reports.
 - **Done means the contract is satisfied, not that a plan was executed.** The acceptance criteria are the detectors; the run reports evidence for each one, and partial satisfaction is not completion.
-
-## What Just Spec Persists
-
-Just Spec keeps only the contract needed to decide whether the implementation is correct:
-
-```text
-Goal
-Requirements
-Acceptance Criteria
-Material Decisions
-Constraints
-Out of Scope
-```
-
-There is no design document, implementation plan, task breakdown, or test plan. That is a consequence of where review happens rather than a goal in itself: every additional artifact is another place your attention has to go.
-
-The model decides how to implement the change from the current codebase at implementation time.
 
 ## The Command
 
@@ -84,6 +65,29 @@ That last group matters because nothing externally observable distinguishes the 
 A decision is also not skipped just because a conventional default exists. List sort order, whether a date comes from the business current date or the real clock, tie-breaking, rounding — they look settled and still change what people see. Nobody is watching the run, so an inferred default has no second chance to be noticed.
 
 Questions arrive one at a time, as a selection with a recommendation. When several options are genuinely defensible, you also get each option's upside and downside and the reason behind the recommendation, so answering is a choice rather than an essay.
+
+```text
+Lending is blocked by two rules: an overdue loan, and the per-member limit
+on books out at once. Which one does the refusal name when both apply?
+
+  A. Append the limit check to the end of the existing order
+     + Today's messages stay as they are; the diff is one branch.
+     − A member who is both overdue and at the limit is told to return one
+       more book, returns it, and is then told about the overdue loan.
+  B. Check the overdue loan first
+     + The first message names the blocker that has to be cleared anyway.
+     − The existing order changes, so the messages members at the limit
+       see today have to be re-checked.
+
+Recommended: B. Being at the limit clears by returning any book. Being
+overdue clears only by returning the overdue book, so it outlives A's
+advice and the member comes back to a second refusal.
+
+❯ 1. Overdue first (recommended)
+     Name the overdue loan; check the limit only when nothing is overdue.
+  2. Limit appended last
+     Keep today's order and add the limit check at the end.
+```
 
 After every answer, Just Spec reevaluates the remaining ambiguities instead of following a predefined questionnaire. There is no fixed question limit.
 
@@ -126,6 +130,14 @@ Behavioral Contract
                          AC Evidence
 ```
 
+| AC | Result | Evidence |
+|---|---|---|
+| AC1 | PASS | `loan.test.ts > names the overdue loan when both rules block` — passed |
+| AC2 | PASS | `loan.test.ts > checks the limit only when nothing is overdue` — passed |
+| AC3 | PASS | `npm test -- loan` — 41 passed, 0 failed |
+| AC4 | PASS | Checked in the browser (`npm run dev`): a member who is overdue and at the limit is shown "Return the overdue book" |
+| AC5 | PASS | Checked in the browser (`npm run dev`): a member only at the limit is still shown "Return any book" |
+
 The model may plan internally as needed, but the implementation plan remains ephemeral. No plan and no task list are produced.
 
 Where `/goal` is unavailable — an older Claude Code, or goals turned off — ask for the same thing in an attended session. The definition of done does not change:
@@ -139,6 +151,61 @@ instead of completing if an AC turns out to be unsatisfiable.
 #### Where `/just-spec:build` went
 
 Earlier versions shipped a `build` command that implemented the spec itself. Execution now belongs to `/goal`, which is the official loop and the one worth trusting when no one is watching, so `build` was removed rather than kept as a wrapper around it. If you were using it, run the line offered at the end of `/just-spec:spec` instead; for a spec written before this change, the same line works with its path.
+
+## Installation
+
+Add the marketplace in Claude Code:
+
+```text
+/plugin marketplace add Basio0916/just-spec
+```
+
+Install Just Spec:
+
+```text
+/plugin install just-spec@just-spec
+```
+
+Reload plugins if necessary:
+
+```text
+/reload-plugins
+```
+
+## Usage
+
+Create a spec:
+
+```text
+/just-spec:spec Add account deletion with a 14-day recovery window
+```
+
+If there is material ambiguity, Just Spec asks only the questions required to make the behavior unambiguous.
+
+Once the spec is ready, Just Spec prints the `/goal` line for it. Run that line, and the session works until every acceptance criterion is satisfied:
+
+```text
+/goal Implement the spec at .just-spec/specs/account-deletion.md. Done only when: ...
+```
+
+The run finishes with an implementation summary and evidence for each Acceptance Criterion.
+
+## What Just Spec Persists
+
+Just Spec keeps only the contract needed to decide whether the implementation is correct:
+
+```text
+Goal
+Requirements
+Acceptance Criteria
+Material Decisions
+Constraints
+Out of Scope
+```
+
+There is no design document, implementation plan, task breakdown, or test plan. That is a consequence of where review happens rather than a goal in itself: every additional artifact is another place your attention has to go.
+
+The model decides how to implement the change from the current codebase at implementation time.
 
 ## Principles
 
@@ -212,44 +279,6 @@ The two compose. Plan Mode governs when Claude Code may edit; Just Spec governs 
 
 Detailed planning remains valuable for large migrations, complex parallel execution, or changes where coordination itself is the hard problem.
 
-## Installation
-
-Add the marketplace in Claude Code:
-
-```text
-/plugin marketplace add Basio0916/just-spec
-```
-
-Install Just Spec:
-
-```text
-/plugin install just-spec@just-spec
-```
-
-Reload plugins if necessary:
-
-```text
-/reload-plugins
-```
-
-## Usage
-
-Create a spec:
-
-```text
-/just-spec:spec Add account deletion with a 14-day recovery window
-```
-
-If there is material ambiguity, Just Spec asks only the questions required to make the behavior unambiguous.
-
-Once the spec is ready, Just Spec prints the `/goal` line for it. Run that line, and the session works until every acceptance criterion is satisfied:
-
-```text
-/goal Implement the spec at .just-spec/specs/account-deletion.md. Done only when: ...
-```
-
-The run finishes with an implementation summary and evidence for each Acceptance Criterion.
-
 ## When Not to Use Just Spec
 
 Just Spec is not trying to be the right workflow for every kind of development. Deciding whether it fits is your call, not the tool's — it will not refuse a request. These are the cases where a more rigorous planning and review process tends to be a better fit:
@@ -264,7 +293,7 @@ Unattended execution is not on that list. With `/goal` driving the run it is the
 
 Just Spec does not argue that those workflows are unnecessary. It explores a narrower question:
 
-> **If human review is concentrated on one contract, is that enough for everyday development with frontier models?**
+> **Is one contract, settled in conversation, enough of a reference signal for a loop nobody is watching?**
 
 ## Status
 
