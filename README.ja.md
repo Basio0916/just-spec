@@ -115,10 +115,12 @@ spec には2種類の内容が混ざります。人間が質問に答えて確�
 spec が整うと、`/just-spec:spec` は実行用の一行を渡して終わります。その行は spec ファイルを指すだけで、受け入れ基準が2個でも30個でも長さは変わりません。実行側が spec を直接読むからです。
 
 ```text
-/goal Implement the spec at .just-spec/specs/<slug>.md. Done only when: you have read it; every AC in it is PASS with executed evidence; you reported a per-AC evidence table (AC / result / evidence); no Constraint is violated. Partial satisfaction is not done. If an AC is unsatisfiable or keeps failing, do not complete: report the conflict, what you tried, and the question the human must decide, then stop.
+/goal Implement the spec at .just-spec/specs/<slug>.md. Done only when: you have read it; every AC in it is PASS with executed evidence; you reported a per-AC evidence table (AC / result / evidence); no Constraint is violated. Partial satisfaction is not done. If an AC is unsatisfiable or keeps failing, do not complete: report the conflict, what you tried, and the question the human must decide, then stop. Stop after 10 turns even if not done: do not declare completion; report which ACs are PASS, which are not and why, and a summary of what you did, then stop.
 ```
 
 そこから先のループは Claude Code のものです。人間が張り付いている必要はありません。各ターンのあとに評価器が条件を判定し、成立するまでセッションが続きます。
+
+条件文が実行を10ターンで打ち切るのは、期待値ではなく暴走の防止線です。spec が完結していれば通常はずっと少ないターンで完了するので、上限に達したときは spec の欠陥を疑い、報告された未達の AC から原因を確認して下さい。
 
 ```text
 Behavioral Contract
@@ -146,7 +148,8 @@ Behavioral Contract
 ```text
 .just-spec/specs/<slug>.md を実装してください。Completion 節に従い、全 AC を実行済みの根拠つきで
 PASS にし、AC 別の Evidence 表を報告し、Constraints に違反せず、AC が充足不能と分かった場合は
-完了とせず質問を添えて停止してください。
+完了とせず質問を添えて停止してください。10ターンで全 AC に至らない場合も完了とせず、
+PASS 済みの AC と未達の AC・その理由を報告して停止してください。
 ```
 
 #### `/just-spec:build` はどこへ行ったか

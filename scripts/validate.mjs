@@ -106,7 +106,7 @@ if (JSON.stringify(skillNames) !== JSON.stringify(["spec"])) {
 
 const checks = {
   spec: {
-    maxWords: 1250,
+    maxWords: 1285,
     required: [
       "Acceptance criteria describe observable behavior",
       "There is no fixed question limit",
@@ -120,6 +120,7 @@ const checks = {
       "references/ambiguity.md",
       "executed unattended by `/goal`, never by this skill",
       "/goal Implement the spec at <spec-path>",
+      "after 10 turns even if not done",
       "Offer it only when `status` is `ready`",
       "A conventional default is never a reason to skip a question",
       "states its observation boundary",
